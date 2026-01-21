@@ -2,7 +2,7 @@
 
 Une application web simple et sécurisée pour extraire vos clés privées (Configuration Key & BLE Code) à partir des fichiers de données de l'application Boks (iOS ou Android).
 
-🔗 **[Utiliser l'application en ligne](https://votre-username.github.io/boks-extractor)** (Lien à activer via GitHub Pages)
+🔗 **[Utiliser l'application en ligne](https://quentin013101.github.io/boks-key-extractor/)** 
 
 ## 🔒 Confidentialité & Sécurité
 Cette application s'exécute **intégralement en local** dans votre navigateur.
