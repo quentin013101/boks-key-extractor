@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boks Key Extractor</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-color: #3b82f6;
+            --accent-hover: #2563eb;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --border-color: #334155;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #60a5fa 0%, #a855f7 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .drop-zone {
+            background-color: var(--card-bg);
+            border: 2px dashed var(--border-color);
+            border-radius: 1rem;
+            padding: 3rem 2rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .drop-zone:hover,
+        .drop-zone.dragover {
+            border-color: var(--accent-color);
+            background-color: rgba(59, 130, 246, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .drop-zone-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .results {
+            margin-top: 2rem;
+            display: none;
+            /* Hidden by default */
+            flex-direction: column;
+            gap: 1rem;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .result-card {
+            background-color: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid var(--border-color);
+        }
+
+        .result-info {
+            text-align: left;
+        }
+
+        .result-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+        }
+
+        .result-value {
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 1.25rem;
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+
+        .copy-btn {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            border-color: var(--accent-color);
+        }
+
+        .error-message {
+            color: var(--error-color);
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .instructions {
+            margin-top: 3rem;
+            text-align: left;
+            background: rgba(30, 41, 59, 0.5);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .instructions code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            color: #e2e8f0;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Boks Key Extractor</h1>
+        <p class="subtitle">Récupérez vos clés Boks en toute sécurité, localement.</p>
+
+        <div class="drop-zone" id="dropZone">
+            <div class="drop-zone-icon">📂</div>
+            <h3>Glissez-déposez votre fichier ici</h3>
+            <p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 0.5rem;">
+                Accepte <code>IndexedDB.sqlite3</code> (iOS) ou <code>.ldb</code> (Android), ou le dossier complet.
+            </p>
+            <input type="file" id="fileInput" style="display: none;" />
+        </div>
+
+        <div class="error-message" id="errorMessage"></div>
+
+        <div class="results" id="resultsArea">
+            <div class="result-card">
+                <div class="result-info">
+                    <div class="result-label">Configuration Key</div>
+                    <div class="result-value" id="configKey">--</div>
+                </div>
+                <button class="copy-btn" onclick="copyToClipboard('configKey')">Copier</button>
+            </div>
+
+            <div class="result-card">
+                <div class="result-info">
+                    <div class="result-label">BLE Code</div>
+                    <div class="result-value" id="bleCode">--</div>
+                </div>
+                <button class="copy-btn" onclick="copyToClipboard('bleCode')">Copier</button>
+            </div>
+        </div>
+
+        <!-- Instructions removed as requested -->
+
+        <div id="status" style="margin-top: 1rem; color: var(--text-secondary); font-size: 0.9rem;"></div>
+
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const resultsArea = document.getElementById('resultsArea');
+        const errorMessage = document.getElementById('errorMessage');
+        const statusDiv = document.getElementById('status');
+        const configKeyEl = document.getElementById('configKey');
+        const bleCodeEl = document.getElementById('bleCode');
+
+        // Drag & Drop handlers
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+
+            const items = e.dataTransfer.items;
+            if (items && items.length > 0 && items[0].webkitGetAsEntry) {
+                handleItems(items);
+            } else {
+                handleFiles(e.dataTransfer.files);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function log(msg) {
+            statusDiv.textContent = msg;
+            console.log(msg);
+        }
+
+        // --- Folder Handling ---
+        let candidates = [];
+        let processingQueue = [];
+
+        function handleItems(items) {
+            resetUI();
+            candidates = [];
+            processingQueue = [];
+
+            for (let i = 0; i < items.length; i++) {
+                processingQueue.push(items[i].webkitGetAsEntry());
+            }
+
+            log("Analyse du dossier en cours...");
+            traverseTree(processingQueue, () => {
+                log(`Analyse terminée. ${candidates.length} fichier(s) candidat(s) trouvés.`);
+                processCandidates();
+            });
+        }
+
+        function traverseTree(queue, doneCallback) {
+            if (queue.length === 0) {
+                doneCallback();
+                return;
+            }
+
+            const entry = queue.shift();
+
+            if (entry.isFile) {
+                const name = entry.name.toLowerCase();
+                // Android uses .ldb (LevelDB) or .log. iOS uses .sqlite3.
+                if (name === 'indexeddb.sqlite3' || name.endsWith('.sqlite3') || name.endsWith('.ldb') || name.endsWith('.log')) {
+                    // Add to candidates but keep traversing for others
+                    entry.file(file => {
+                        candidates.push(file);
+                        traverseTree(queue, doneCallback);
+                    });
+                } else {
+                    traverseTree(queue, doneCallback);
+                }
+            } else if (entry.isDirectory) {
+                const dirReader = entry.createReader();
+                const readEntries = () => {
+                    dirReader.readEntries(entries => {
+                        if (entries.length > 0) {
+                            for (let i = 0; i < entries.length; i++) {
+                                queue.push(entries[i]);
+                            }
+                            readEntries(); // Continue reading this dir (chunked)
+                        } else {
+                            traverseTree(queue, doneCallback);
+                        }
+                    }, err => traverseTree(queue, doneCallback));
+                };
+                readEntries();
+            }
+        }
+
+        function processCandidates() {
+            if (candidates.length === 0) {
+                showError("Aucun fichier 'IndexedDB.sqlite3' trouvé dans le dossier.");
+                log("");
+                return;
+            }
+
+            // Try files one by one until success
+            tryNextCandidate(0);
+        }
+
+        function tryNextCandidate(index) {
+            if (index >= candidates.length) {
+                showError("Aucune clé trouvée dans les fichiers analysés.");
+                log("Échec : Aucun fichier ne contient les clés.");
+                return;
+            }
+
+            const file = candidates[index];
+            log(`Analyse du fichier ${index + 1}/${candidates.length} : ${file.name} (${Math.round(file.size / 1024)} KB)...`);
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const success = extractKeys(e.target.result);
+                if (success) {
+                    log(`Succès ! Clés trouvées dans le fichier ${index + 1}.`);
+                } else {
+                    tryNextCandidate(index + 1);
+                }
+            };
+            reader.onerror = () => tryNextCandidate(index + 1);
+            reader.readAsArrayBuffer(file);
+        }
+
+        // --- File Handling (Direct) ---
+        function handleFiles(files) {
+            resetUI();
+            let targetFile = null;
+            for (let i = 0; i < files.length; i++) {
+                const name = files[i].name.toLowerCase();
+                if (name === 'indexeddb.sqlite3' || name.endsWith('.sqlite3') || name.endsWith('.sql') || name.endsWith('.ldb') || name.endsWith('.log')) {
+                    targetFile = files[i];
+                    break;
+                }
+            }
+            if (!targetFile && files.length === 1) targetFile = files[0];
+
+            if (targetFile) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const success = extractKeys(e.target.result);
+                    if (!success) showError("Aucune clé trouvée dans ce fichier.");
+                };
+                reader.readAsArrayBuffer(targetFile);
+            } else {
+                showError("Fichier incompatible.");
+            }
+        }
+
+        function resetUI() {
+            errorMessage.style.display = 'none';
+            resultsArea.style.display = 'none';
+            configKeyEl.textContent = "--";
+            bleCodeEl.textContent = "--";
+            statusDiv.textContent = "";
+        }
+
+        // --- Extraction Logic ---
+        function extractKeys(buffer) {
+            const data = new Uint8Array(buffer);
+
+            const configVal = searchRobust(data, "configurationKey");
+            const bleVal = searchRobust(data, "bleCode");
+
+            let foundAny = false;
+
+            if (configVal) {
+                configKeyEl.textContent = configVal;
+                foundAny = true;
+            } else {
+                configKeyEl.textContent = "Non trouvé";
+            }
+
+            if (bleVal) {
+                bleCodeEl.textContent = bleVal;
+                foundAny = true;
+            } else {
+                bleCodeEl.textContent = "Non trouvé";
+            }
+
+            if (foundAny) {
+                resultsArea.style.display = 'flex';
+                errorMessage.style.display = 'none';
+                return true;
+            }
+            return false;
+        }
+
+        function searchRobust(data, keyName) {
+            // Try UTF-16LE first (most likely for WebKit/Ionic)
+            let val = searchEncoding(data, keyName, true);
+            if (val) return val;
+
+            // Try UTF-8 fallback
+            val = searchEncoding(data, keyName, false);
+            return val;
+        }
+
+        function searchEncoding(data, keyName, isUtf16) {
+            let searchBytes = [];
+
+            // Add opening quote
+            searchBytes.push(34); // "
+            if (isUtf16) searchBytes.push(0);
+
+            if (isUtf16) {
+                for (let i = 0; i < keyName.length; i++) {
+                    searchBytes.push(keyName.charCodeAt(i));
+                    searchBytes.push(0);
+                }
+            } else {
+                for (let i = 0; i < keyName.length; i++) searchBytes.push(keyName.charCodeAt(i));
+            }
+
+            // Add closing quote
+            searchBytes.push(34); // "
+            if (isUtf16) searchBytes.push(0);
+
+            let currentIndex = 0;
+            let limit = 2000; // Increased limit
+
+            while (currentIndex < data.length && limit > 0) {
+                limit--;
+                const index = findSequence(data, searchBytes, currentIndex);
+                if (index === -1) break;
+
+                // Look for value after key
+                // Start searching immediately after key
+                const val = extractValueStrict(data, index + searchBytes.length, isUtf16);
+
+                // "bleCode" value is usually a short hex string (e.g. 3A7020)
+                if (val && val !== "null") {
+                    return val;
+                }
+
+                currentIndex = index + 1;
+            }
+            return null;
+        }
+
+        function extractValueStrict(data, startCursor, isUtf16) {
+            // Look ahead for signature of a string value:
+            // Colon ':', then Quote '"'
+
+            let cursor = startCursor;
+            let foundColon = false;
+            let maxLook = 200;
+            let step = isUtf16 ? 2 : 1;
+
+            for (let i = 0; i < maxLook; i += step) {
+                if (cursor + i >= data.length) return null;
+
+                let byte = data[cursor + i];
+
+                // Structural check: if we hit a comma or brace BEFORE the colon, we are lost.
+                // This prevents "type":"bleCode", "next":"val" -> finding "val" for bleCode.
+                if (!foundColon) {
+                    if (byte === 44 || byte === 125 || byte === 93) { // , or } or ]
+                        // In UTF-16, ensure high byte is 0
+                        if (!isUtf16 || data[cursor + i + 1] === 0) {
+                            return null; // Abort, not the key's value
+                        }
+                    }
+                }
+
+                if (byte === 58) { // :
+                    if (!isUtf16 || data[cursor + i + 1] === 0) {
+                        foundColon = true;
+                        continue;
+                    }
+                }
+
+                if (foundColon) {
+                    if (byte === 34) { // "
+                        if (!isUtf16 || data[cursor + i + 1] === 0) {
+                            return readString(data, cursor + i + step, isUtf16);
+                        }
+                    }
+
+                    // Literal check (null, true, false, number)
+                    if ((byte >= 48 && byte <= 57) || (byte >= 97 && byte <= 122)) { // 0-9, a-z
+                        // Ignore whitespace
+                        if (byte === 32 || byte === 13 || byte === 10) continue;
+                        return "null"; // Treat as non-string value (we only want string keys)
+                    }
+                }
+            }
+            return null;
+        }
+
+        function readString(data, startPos, isUtf16) {
+            let extracted = "";
+            let i = 0;
+            let step = isUtf16 ? 2 : 1;
+
+            while (i < 200) { // Max string length
+                let pos = startPos + i;
+                if (pos >= data.length) break;
+
+                let byte = data[pos];
+
+                if (byte === 34) { // " End quote (Note: in UTF-16 usually followed by 0, but byte check is enough if aligned)
+                    // In UTF-16, " is 34 00. If we are at 34, check next is 0
+                    if (isUtf16) {
+                        if (data[pos + 1] === 0) return extracted;
+                    } else {
+                        return extracted;
+                    }
+                }
+
+                if (isUtf16) {
+                    // Read char
+                    let charCode = byte + (data[pos + 1] << 8); // Simple LE
+                    if (charCode === 34) return extracted; // End quote double check
+                    extracted += String.fromCharCode(charCode);
+                } else {
+                    extracted += String.fromCharCode(byte);
+                }
+
+                i += step;
+            }
+            return extracted;
+        }
+
+        function findSequence(data, sequence, startAt) {
+            for (let i = startAt; i < data.length - sequence.length; i++) {
+                let match = true;
+                for (let j = 0; j < sequence.length; j++) {
+                    if (data[i + j] !== sequence[j]) {
+                        match = false;
+                        break;
+                    }
+                }
+                if (match) return i;
+            }
+            return -1;
+        }
+
+        function showError(msg) {
+            errorMessage.textContent = msg;
+            errorMessage.style.display = 'block';
+        }
+
+        function copyToClipboard(elementId) {
+            const text = document.getElementById(elementId).textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.querySelector(`button[onclick="copyToClipboard('${elementId}')"]`);
+                const originalText = btn.textContent;
+                btn.textContent = "Copié !";
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            });
+        }
+    </script>
+
+</body>
+
+</html>
